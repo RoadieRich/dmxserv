@@ -2,55 +2,117 @@
 using System.Runtime.InteropServices;
 namespace DasUsbInterface
 {
-	public class Interface
+	public class DMXInterface
 	{
-
-		public int Universe
-		{
-			get;
-			private set;
-		}
-
-		public Interface(int universe=0)
+		/// <summary>
+		/// The main interface class.  
+		/// <exception cref="InterfaceError">Thrown if it cannot connect to the interface</exception>
+		/// </summary>
+		/// <param name="universe">The interface id</param>
+		public DMXInterface(int universe=0)
 		{
 			Universe = universe;
-			if(_DasUsbCommand(UsbCommand.Init + Universe*100, 0, null)!=ReturnCode.None)
-				throw new InterfaceError("Cannot init.");
-			if(_DasUsbCommand(UsbCommand.Open + Universe*100, 0, null) != ReturnCode.None)
-				throw new InterfaceError("Cannot open interface.");
+			ReturnCode r = _DasUsbCommand(UsbCommand.Init + Universe * 100, 0, null);
+			if(r != ReturnCode.Success)
+				throw new InterfaceError(r, "Cannot init.");
+			r = _DasUsbCommand(UsbCommand.Open + Universe * 100, 0, null);
+			if(r != ReturnCode.Success)
+				throw new InterfaceError(r, "Cannot open interface.");
 		}
-		~Interface()
+		~DMXInterface()
 		{
 			_DasUsbCommand(UsbCommand.Close + Universe * 100, 0, null);
 			_DasUsbCommand(UsbCommand.Exit + Universe * 100, 0, null);
 		}
 
+		/// <summary>
+		/// Write channel data to the interface
+		/// </summary>
+		/// <exception cref="InterfaceError">throws InterfaceError on failure</exception>
+		/// <param name="data">Array of channel data
+		/// <remarks><c>data</c> is 0-based - array index is DMX Channel - 1</remarks></param>
+		/// 
 		public void Write(byte[] data)
 		{
-			if (_DasUsbCommand(UsbCommand.DMXOut + Universe * 100, data.Length, data) != ReturnCode.None)
-				throw new InterfaceError("Cannot send data.");
+			ReturnCode r = _DasUsbCommand(UsbCommand.DMXOut + Universe * 100, data.Length, data);
+			if (r != ReturnCode.Success)
+				throw new InterfaceError(r, "Cannot send data.");
 		}
 
 		[DllImport("DasHard2006VB.dll", EntryPoint = "DasUsbCommand")]
 		private static extern ReturnCode _DasUsbCommand(UsbCommand command, int param, byte[] data);
 		
+		/// <summary>
+		/// Send arbitrary commands to interface
+		/// </summary>
+		/// <param name="command">Command to send</param>
+		/// <param name="param">Command parameter</param>
+		/// <param name="data">Array of DMX channels</param>
+		/// <returns>The code returned by the interface</returns>
 		public ReturnCode SendCommand(UsbCommand command, int param, byte[] data)
 		{
 			return _DasUsbCommand(command+100*Universe, param, data);
 		}
+
+		/// <summary>
+		/// Send arbitrary commands to interface
+		/// </summary>
+		/// <param name="command">Command to send</param>
+		/// <param name="param">Command parameter</param>
+		/// <param name="data">Array of DMX channels</param>
+		/// <exception cref="InterfaceError">Throws InterfaceError on failure</exception>
+		public void SendCommand_e(UsbCommand command, int param, byte[] data) //throw (InterfaceError)
+		{
+			ReturnCode r = _DasUsbCommand(command + 100 * Universe, param, data); 
+			if (r != ReturnCode.Success)
+			{
+				throw new InterfaceError(r);
+			}
+		}
+
+		/// <summary>
+		/// The universe the interface is assigned to
+		/// </summary>
+		public int Universe
+		{
+			get;
+			private set;
+		}
 	}
 
+	/// <summary>
+	/// Command codes
+	/// </summary>
 	public enum UsbCommand
 	{
+		/// <summary>
+		/// Open connnection to interface
+		/// </summary>
 		Open = 1,
+		/// <summary>
+		/// Close connection to interface
+		/// </summary>
 		Close = 2,
+
 		DMXOutOff = 3,
+	
+		/// <summary>
+		/// send DMX data
+		/// </summary>
 		DMXOut = 4,
 		PortRead = 5,
 		PortConfig = 6,
 		Version = 7,
 		DMXIn = 8,
+
+		/// <summary>
+		/// initialise interface
+		/// </summary>
 		Init = 9,
+
+		/// <summary>
+		/// deactivate interface
+		/// </summary>
 		Exit = 10,
 		DMXSCode = 11,
 		DMX2Enable = 12,
@@ -69,27 +131,17 @@ namespace DasUsbInterface
 		SizeMemory = 23
 	}
 
-	public enum DMXInterfaces
-	{
-		Interface0 = 0,
-		Interface1 = 100,
-		Interface2 = 200,
-		Interface3 = 300,
-		Interface4 = 400,
-		Interface5 = 500,
-		Interface6 = 600,
-		Interface7 = 700,
-		Interface8 = 800,
-		Interface9 = 900
-	}
-
 	public enum ReturnCode
 	{
-		//No error
-		None = 1,
+		/// <summary>
+		/// no error
+		/// </summary>
+		Success = 1,
 		NothingToDo = 2,
 
-		//Errors
+		/// <summary>
+		/// Error
+		/// </summary>
 		Error = -1,		// Command failed
 		NotOpen = -2,
 		AlreadyOpen = -12
@@ -110,8 +162,27 @@ namespace DasUsbInterface
 
 	public class InterfaceError : Exception
 	{
-		public InterfaceError(String message) : base(message)
+		public InterfaceError(String message) 
+			: base(message)
 		{
+		}
+
+		public InterfaceError(ReturnCode errorCode)
+			: base()
+		{
+			ErrorCode = errorCode;
+		}
+
+		public InterfaceError(ReturnCode errorCode, String message)
+			: base(message)
+		{
+			ErrorCode = errorCode;
+		}
+
+		public ReturnCode ErrorCode
+		{
+			get;
+			private set;
 		}
 	}
 }

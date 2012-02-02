@@ -26,10 +26,10 @@ namespace HardwareTestPD2
 
 			//init
 			Console.WriteLine("Initialising...");
-			Interface inter = null;
+			DMXInterface inter = null;
 			try
 			{
-				inter = new Interface();
+				inter = new DMXInterface();
 			}
 			catch (InterfaceError e)
 			{

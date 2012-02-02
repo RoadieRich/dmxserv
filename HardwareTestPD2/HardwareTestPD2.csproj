@@ -78,7 +78,6 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DasHard2006.dll" />
     <Content Include="DasHard2006VB.dll" />
   </ItemGroup>
   <ItemGroup>
