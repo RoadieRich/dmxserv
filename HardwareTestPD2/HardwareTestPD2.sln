@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HardwareTestPD2", "HardwareTestPD2.csproj", "{BDD56C8A-4E0C-4C91-907A-B14A5A54F186}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDD56C8A-4E0C-4C91-907A-B14A5A54F186}.Debug|x86.ActiveCfg = Debug|x86
+		{BDD56C8A-4E0C-4C91-907A-B14A5A54F186}.Debug|x86.Build.0 = Debug|x86
+		{BDD56C8A-4E0C-4C91-907A-B14A5A54F186}.Release|x86.ActiveCfg = Release|x86
+		{BDD56C8A-4E0C-4C91-907A-B14A5A54F186}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
