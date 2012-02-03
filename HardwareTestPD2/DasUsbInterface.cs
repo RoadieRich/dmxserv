@@ -2,21 +2,24 @@
 using System.Runtime.InteropServices;
 namespace DasUsbInterface
 {
+	/// <summary>
+	/// DasLight USB DMX Interface
+	/// </summary>
 	public class DMXInterface
 	{
 		/// <summary>
 		/// The main interface class.  
-		/// <exception cref="InterfaceError">Thrown if it cannot connect to the interface</exception>
 		/// </summary>
 		/// <param name="universe">The interface id</param>
-		public DMXInterface(int universe=0)
+		/// <exception cref="InterfaceError">Thrown if it cannot connect to the interface</exception>
+		public DMXInterface(int universe = 0)
 		{
 			Universe = universe;
 			ReturnCode r = _DasUsbCommand(UsbCommand.Init + Universe * 100, 0, null);
-			if(r != ReturnCode.Success)
+			if (r != ReturnCode.Success)
 				throw new InterfaceError(r, "Cannot init.");
 			r = _DasUsbCommand(UsbCommand.Open + Universe * 100, 0, null);
-			if(r != ReturnCode.Success)
+			if (r != ReturnCode.Success)
 				throw new InterfaceError(r, "Cannot open interface.");
 		}
 		~DMXInterface()
@@ -41,18 +44,6 @@ namespace DasUsbInterface
 
 		[DllImport("DasHard2006VB.dll", EntryPoint = "DasUsbCommand")]
 		private static extern ReturnCode _DasUsbCommand(UsbCommand command, int param, byte[] data);
-		
-		/// <summary>
-		/// Send arbitrary commands to interface
-		/// </summary>
-		/// <param name="command">Command to send</param>
-		/// <param name="param">Command parameter</param>
-		/// <param name="data">Array of DMX channels</param>
-		/// <returns>The code returned by the interface</returns>
-		public ReturnCode SendCommand(UsbCommand command, int param, byte[] data)
-		{
-			return _DasUsbCommand(command+100*Universe, param, data);
-		}
 
 		/// <summary>
 		/// Send arbitrary commands to interface
@@ -60,10 +51,24 @@ namespace DasUsbInterface
 		/// <param name="command">Command to send</param>
 		/// <param name="param">Command parameter</param>
 		/// <param name="data">Array of DMX channels</param>
-		/// <exception cref="InterfaceError">Throws InterfaceError on failure</exception>
-		public void SendCommand_e(UsbCommand command, int param, byte[] data) //throw (InterfaceError)
+		/// <returns>The code returned by the interface</returns>
+		/// <seealso cref="SendCommand_e"/>
+		public ReturnCode SendCommand(UsbCommand command, int param, byte[] data)
 		{
-			ReturnCode r = _DasUsbCommand(command + 100 * Universe, param, data); 
+			return _DasUsbCommand(command + 100 * Universe, param, data);
+		}
+
+		/// <summary>
+		/// Send arbitrary commands to interface - throws exception on error.
+		/// </summary>
+		/// <param name="command">Command to send</param>
+		/// <param name="param">Command parameter</param>
+		/// <param name="data">Array of DMX channels</param>
+		/// <exception cref="InterfaceError">Throws InterfaceError on failure</exception>
+		/// <seealso cref="SendCommand"/>
+		public void SendCommand_e(UsbCommand command, int param, byte[] data)
+		{
+			ReturnCode r = _DasUsbCommand(command + 100 * Universe, param, data);
 			if (r != ReturnCode.Success)
 			{
 				throw new InterfaceError(r);
@@ -95,7 +100,7 @@ namespace DasUsbInterface
 		Close = 2,
 
 		DMXOutOff = 3,
-	
+
 		/// <summary>
 		/// send DMX data
 		/// </summary>
@@ -133,36 +138,33 @@ namespace DasUsbInterface
 
 	public enum ReturnCode
 	{
-		/// <summary>
-		/// no error
-		/// </summary>
 		Success = 1,
 		NothingToDo = 2,
-
-		/// <summary>
-		/// Error
-		/// </summary>
-		Error = -1,		// Command failed
+		Error = -1,
 		NotOpen = -2,
 		AlreadyOpen = -12
 	}
 
-	// TODO: Not sure what to do with this for now.  We probably won't need it.
-	// struct STIME
-	//{
-	//    ushort year;
-	//    ushort month;
-	//    ushort dayOfWeek;
-	//    ushort date;
-	//    ushort hour;
-	//    ushort min;
-	//    ushort sec;
-	//    ushort milliseconds;
-	//}
+	/* TODO: Not sure what to do with this for now.  We probably won't need it.
+	struct STIME
+	{
+		ushort year;
+		ushort month;
+		ushort dayOfWeek;
+		ushort date;
+		ushort hour;
+		ushort min;
+		ushort sec;
+		ushort milliseconds;
+	}
+	*/
 
+	/// <summary>
+	/// Thrown by DMXInterface on any error.  Check ReturnCode for information.
+	/// </summary>
 	public class InterfaceError : Exception
 	{
-		public InterfaceError(String message) 
+		public InterfaceError(String message)
 			: base(message)
 		{
 		}
