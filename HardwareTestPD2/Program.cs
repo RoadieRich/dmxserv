@@ -7,11 +7,6 @@ namespace HardwareTestPD2
 {
 	class Program
 	{
-		public static Boolean DoCommand(UsbCommand command, int param, byte[] data)
-		{
-			throw new NotImplementedException();
-		}
-
 		static void Main(string[] args)
 		{
 			int i;
