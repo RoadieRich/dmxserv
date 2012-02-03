@@ -78,7 +78,12 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DasHard2006VB.dll" />
+    <Resource Include="DasHard2006VB.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="winusb.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
