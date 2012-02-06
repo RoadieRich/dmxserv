@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading;
-using DasUsbInterface;
+using DasUsbInterface.Stub;
 
 namespace HardwareTestPD2
 {
@@ -34,7 +34,7 @@ namespace HardwareTestPD2
 			if (inter != null)
 			{
 				Console.WriteLine("Sending test data.");
-				for (byte val = 255; val >= 0; val >>= 1)
+				for (byte val = 255; val > 0; val--)
 				{
 					try
 					{
