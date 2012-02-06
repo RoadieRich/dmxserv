@@ -52,20 +52,20 @@ namespace DasUsbInterface
 		/// <param name="param">Command parameter</param>
 		/// <param name="data">Array of DMX channels</param>
 		/// <returns>The code returned by the interface</returns>
-		/// <seealso cref="SendCommand_e"/>
+		/// <seealso cref="DMXInterface.SendCommand_e"/>
 		public ReturnCode SendCommand(UsbCommand command, int param, byte[] data)
 		{
 			return _DasUsbCommand(command + 100 * Universe, param, data);
 		}
 
 		/// <summary>
-		/// Send arbitrary commands to interface - throws exception on error.
+		/// Send arbitrary commands to interface - throws <c cref=InterfaceError>InterfaceError</c> on error.
 		/// </summary>
 		/// <param name="command">Command to send</param>
 		/// <param name="param">Command parameter</param>
 		/// <param name="data">Array of DMX channels</param>
 		/// <exception cref="InterfaceError">Throws InterfaceError on failure</exception>
-		/// <seealso cref="SendCommand"/>
+		/// <seealso cref="DMXInterface.SendCommand"/>
 		public void SendCommand_e(UsbCommand command, int param, byte[] data)
 		{
 			ReturnCode r = _DasUsbCommand(command + 100 * Universe, param, data);
@@ -86,8 +86,9 @@ namespace DasUsbInterface
 	}
 
 	/// <summary>
-	/// Command codes
+	/// Command codes used as first argument to <c>DMXInterface.SendCommand*</c> methods.
 	/// </summary>
+	/// <remarks>Most of these are unused in our code, but are preserved for completeness, and for future expansion.</remarks>
 	public enum UsbCommand
 	{
 		/// <summary>
@@ -99,6 +100,9 @@ namespace DasUsbInterface
 		/// </summary>
 		Close = 2,
 
+		/// <summary>
+		/// Stop sending DMX signal
+		/// </summary>
 		DMXOutOff = 3,
 
 		/// <summary>
@@ -119,6 +123,9 @@ namespace DasUsbInterface
 		/// deactivate interface
 		/// </summary>
 		Exit = 10,
+
+		//After this point, we don't need, but preserved for future expansion
+
 		DMXSCode = 11,
 		DMX2Enable = 12,
 		DMX2Out = 13,
@@ -130,51 +137,59 @@ namespace DasUsbInterface
 		DMX2In = 19,
 		DMX3In = 20,
 
-
 		WriteMemory = 21,
 		ReadMemory = 22,
 		SizeMemory = 23
 	}
 
+	/// <summary>
+	/// Returned to indicate success (or otherwise) of <c>DMXInterface.SendCommand()</c> 
+	/// </summary>
 	public enum ReturnCode
 	{
 		Success = 1,
 		NothingToDo = 2,
 		Error = -1,
 		NotOpen = -2,
-		AlreadyOpen = -12
+		AlreadyOpen = -12,
+
+		Unknown = 0
 	}
 
-	/* TODO: Not sure what to do with this for now.  We probably won't need it.
-	struct STIME
-	{
-		ushort year;
-		ushort month;
-		ushort dayOfWeek;
-		ushort date;
-		ushort hour;
-		ushort min;
-		ushort sec;
-		ushort milliseconds;
-	}
-	*/
+	// TODO: Not sure what to do with this for now.  
+	// We probably won't need it, but if this code goes public, other people might.
+
+	//struct STIME
+	//{
+	//    ushort year;
+	//    ushort month;
+	//    ushort dayOfWeek;
+	//    ushort date;
+	//    ushort hour;
+	//    ushort min;
+	//    ushort sec;
+	//    ushort milliseconds;
+	//}
 
 	/// <summary>
-	/// Thrown by DMXInterface on any error.  Check ReturnCode for information.
+	/// Thrown by DMXInterface on any error.  Check the <c>ReturnCode</c> member for information.
 	/// </summary>
 	public class InterfaceError : Exception
 	{
 		public InterfaceError(String message)
 			: base(message)
 		{
+			ErrorCode = ReturnCode.Unknown;
 		}
-
 		public InterfaceError(ReturnCode errorCode)
 			: base()
 		{
 			ErrorCode = errorCode;
 		}
 
+		/// <param name="errorCode">ReturnCode returned from the library call.
+		/// <see cref="ReturnCode"/></param>
+		/// <param name="message">Error message</param>
 		public InterfaceError(ReturnCode errorCode, String message)
 			: base(message)
 		{
