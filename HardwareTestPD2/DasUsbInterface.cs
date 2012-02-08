@@ -7,7 +7,9 @@ namespace DasUsbInterface
 	/// </summary>
 	public class DMXInterface
 	{
-		private DMXInterface Interface;
+
+		public DMXInterface()
+		{}
 		/// <summary>
 		/// The main interface class.  
 		/// </summary>
@@ -19,6 +21,7 @@ namespace DasUsbInterface
 			if (r != ReturnCode.Success)
 				throw new InterfaceError(r, "Cannot initialise library.", -1);
 			Universe = universe;
+			Open();
 		}
 
 		public void Open()
@@ -82,7 +85,7 @@ namespace DasUsbInterface
 		[DllImport("DasHard2006VB.dll", EntryPoint = "DasUsbCommand")]
 		private static extern ReturnCode _DasUsbCommand(UsbCommand command, int param, byte[] data);
 
-		protected ReturnCode DoCommand(UsbCommand command, int param, byte[] data)
+		protected virtual ReturnCode DoCommand(UsbCommand command, int param, byte[] data)
 		{
 			return _DasUsbCommand(command, param, data);
 		}

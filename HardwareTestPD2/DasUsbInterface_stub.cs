@@ -11,9 +11,15 @@ namespace DasUsbInterface.Stub
 	public class DMXInterfaceStub : DasUsbInterface.DMXInterface
 	{
 		public DMXInterfaceStub(int universe = 0) : base(universe)
-		{}
+		{
+			//ReturnCode r = DoCommand(UsbCommand.Init + Universe * 100, 0, null);
+			//if (r != ReturnCode.Success)
+			//    throw new InterfaceError(r, "Cannot initialise library.", -1);
+			//Universe = universe;
+			//Open();
+		}
 
-		protected ReturnCode DoCommand(UsbCommand command, int param, byte[] data)
+		protected override ReturnCode DoCommand(UsbCommand command, int param, byte[] data)
 		{
 			Console.WriteLine("Recieved command " + command.ToString());
 			if (data != null)
