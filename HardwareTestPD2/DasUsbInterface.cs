@@ -7,6 +7,7 @@ namespace DasUsbInterface
 	/// </summary>
 	public class DMXInterface
 	{
+		private DMXInterface Interface;
 		/// <summary>
 		/// The main interface class.  
 		/// </summary>
@@ -14,18 +15,54 @@ namespace DasUsbInterface
 		/// <exception cref="InterfaceError">Thrown if it cannot connect to the interface</exception>
 		public DMXInterface(int universe = 0)
 		{
+			ReturnCode r = DoCommand(UsbCommand.Init + Universe * 100, 0, null);
+			if (r != ReturnCode.Success)
+				throw new InterfaceError(r, "Cannot initialise library.", -1);
 			Universe = universe;
-			ReturnCode r = _DasUsbCommand(UsbCommand.Init + Universe * 100, 0, null);
-			if (r != ReturnCode.Success)
-				throw new InterfaceError(r, "Cannot init.");
-			r = _DasUsbCommand(UsbCommand.Open + Universe * 100, 0, null);
-			if (r != ReturnCode.Success)
-				throw new InterfaceError(r, "Cannot open interface.");
+		}
+
+		public void Open()
+		{
+			if (!IsOpen)
+			{
+				ReturnCode r = DoCommand(UsbCommand.Open + Universe * 100, 0, null);
+				if (r != ReturnCode.Success)
+					throw new InterfaceError(r, "Cannot open interface.", Universe);
+				IsOpen = true;
+			}
+			else
+			{
+				throw new InterfaceError(ReturnCode.AlreadyOpen, Universe);
+			}
+		}
+
+		public void Close()
+		{
+			if (IsOpen)
+			{
+				ReturnCode r = DoCommand(UsbCommand.Close + Universe * 100, 0, null);
+				if (r != ReturnCode.Success)
+					throw new InterfaceError(r, "Error closing interface", -1);
+				IsOpen = false;
+			}
+			else
+			{
+				throw new InterfaceError(ReturnCode.NotOpen, Universe);
+			}
 		}
 		~DMXInterface()
 		{
-			_DasUsbCommand(UsbCommand.Close + Universe * 100, 0, null);
-			_DasUsbCommand(UsbCommand.Exit + Universe * 100, 0, null);
+			if (IsOpen)
+				//Exceptions in deconstructors just cause problems
+				try
+				{
+					Close();
+				}
+				catch (InterfaceError)
+				{
+				}
+
+			DoCommand(UsbCommand.Exit + Universe * 100, 0, null);
 		}
 
 		/// <summary>
@@ -37,13 +74,19 @@ namespace DasUsbInterface
 		/// 
 		public void Write(byte[] data)
 		{
-			ReturnCode r = _DasUsbCommand(UsbCommand.DMXOut + Universe * 100, data.Length, data);
+			ReturnCode r = DoCommand(UsbCommand.DMXOut + Universe * 100, data.Length, data);
 			if (r != ReturnCode.Success)
-				throw new InterfaceError(r, "Cannot send data.");
+				throw new InterfaceError(r, "Cannot send data.", Universe);
 		}
 
 		[DllImport("DasHard2006VB.dll", EntryPoint = "DasUsbCommand")]
 		private static extern ReturnCode _DasUsbCommand(UsbCommand command, int param, byte[] data);
+
+		protected ReturnCode DoCommand(UsbCommand command, int param, byte[] data)
+		{
+			return _DasUsbCommand(command, param, data);
+		}
+
 
 		/// <summary>
 		/// Send arbitrary commands to interface
@@ -55,7 +98,7 @@ namespace DasUsbInterface
 		/// <seealso cref="DMXInterface.SendCommand_e"/>
 		public ReturnCode SendCommand(UsbCommand command, int param, byte[] data)
 		{
-			return _DasUsbCommand(command + 100 * Universe, param, data);
+			return DoCommand(command + 100 * Universe, param, data);
 		}
 
 		/// <summary>
@@ -68,10 +111,10 @@ namespace DasUsbInterface
 		/// <seealso cref="DMXInterface.SendCommand"/>
 		public void SendCommand_e(UsbCommand command, int param, byte[] data)
 		{
-			ReturnCode r = _DasUsbCommand(command + 100 * Universe, param, data);
+			ReturnCode r = DoCommand(command + 100 * Universe, param, data);
 			if (r != ReturnCode.Success)
 			{
-				throw new InterfaceError(r);
+				throw new InterfaceError(r, Universe);
 			}
 		}
 
@@ -81,7 +124,12 @@ namespace DasUsbInterface
 		public int Universe
 		{
 			get;
-			private set;
+			protected set;
+		}
+		public Boolean IsOpen
+		{
+			get;
+			protected set;
 		}
 	}
 
@@ -176,27 +224,36 @@ namespace DasUsbInterface
 	/// </summary>
 	public class InterfaceError : Exception
 	{
-		public InterfaceError(String message)
+		public InterfaceError(String message, int universe)
 			: base(message)
 		{
 			ErrorCode = ReturnCode.Unknown;
+			Universe = universe;
 		}
-		public InterfaceError(ReturnCode errorCode)
+		public InterfaceError(ReturnCode errorCode, int universe)
 			: base()
 		{
 			ErrorCode = errorCode;
+			Universe = universe;
 		}
 
 		/// <param name="errorCode">ReturnCode returned from the library call.
 		/// <see cref="ReturnCode"/></param>
 		/// <param name="message">Error message</param>
-		public InterfaceError(ReturnCode errorCode, String message)
+		public InterfaceError(ReturnCode errorCode, String message, int universe)
 			: base(message)
 		{
 			ErrorCode = errorCode;
+			Universe = universe;
 		}
 
 		public ReturnCode ErrorCode
+		{
+			get;
+			private set;
+		}
+
+		public int Universe
 		{
 			get;
 			private set;
